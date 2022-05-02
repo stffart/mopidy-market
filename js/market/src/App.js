@@ -7,7 +7,7 @@ import { Console, Volume, Network, DocumentSound,
          Domain, Play, Browse, Sort, VolumeControl,
          Announce, Lastfm, Local, Server, FormPrevious,
          AddCircle, FormClose, Save, Rss, Sync, Technology, 
-         Device, Raspberry, Install } from 'grommet-icons';
+         Device, Raspberry, Install, Trash, Configure } from 'grommet-icons';
 import { deepMerge } from 'grommet/utils';
 import { css } from 'styled-components';
 
@@ -20,12 +20,15 @@ class App extends React.Component {
     super(props);
     this.state = {
       error: null,
+      uninstallDialog: false,
       installedLoaded: true,
       availableLoaded: true,
+      uninstalled: [],
       configLoaded: true,
       configSchemaLoaded: true,
       extInfoLoaded: true,
       pending: [],
+      canRemove: false,
       needRestart: false,
       installed_list: [],
       installed: [],
@@ -38,7 +41,6 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    console.log('mount')
     this.setState({installedLoaded: false, availableLoaded: false})
     fetch(basicURL+"marketapi/installed")
       .then(res => res.json())
@@ -68,8 +70,6 @@ class App extends React.Component {
       .then(res => res.json())
       .then(
         (result) => {
-        console.log(result)
-
           this.setState({
             availableLoaded: true,
             available: result
@@ -88,10 +88,9 @@ class App extends React.Component {
       .then(res => res.json())
       .then(
         (result) => {
-        console.log(result)
-
           this.setState({
             pending: result,
+            uninstalled: result.filter( change => change.changes == 'uninstalled' ).map( change => change.name ),
             needRestart: result.length != 0
           });
         },
@@ -113,8 +112,30 @@ installClick = () => {
       .then(res => res.json())
       .then(
         (result) => {
-          if (result.state == 'installed') {
+          if (result.result == 'installed') {
             this.setState({ pending: this.state.pending.concat({'name': result.name, 'changes':'installed'}), needRestart: true
+            });
+          }
+        },
+        (error) => {
+          console.log('fetch error')
+          console.log(error)
+          this.setState({
+            isLoaded: true,
+            error
+          });
+        }
+      )
+}
+
+uninstallClick = () => {
+   fetch(basicURL+"marketapi/uninstall/"+this.state.currentExt.name)
+      .then(res => res.json())
+      .then(
+        (result) => {
+          if (result.result == 'uninstalled') {
+            this.setState({ pending: this.state.pending.concat({'name': result.name, 'changes':'uninstalled'}), 
+                      uninstalled: this.state.uninstalled.concat(result.name), needRestart: true
             });
           }
         },
@@ -161,7 +182,7 @@ saveClick = () => {
 cardClick = (item) => {
    console.log(item)
    window.location.hash = item.name
-   this.setState({currentExt:item, extinfo:'', config:{}, configSchema:{}, configLoaded: false, configSchemaLoaded: false, extInfoLoaded: false})
+   this.setState({currentExt:item, extinfo:'', config:{}, configSchema:{}, configLoaded: false, configSchemaLoaded: false, extInfoLoaded: false, canRemove:false})
    fetch(basicURL+"marketapi/configschema/"+item.name)
       .then(res => res.json())
       .then(
@@ -208,7 +229,6 @@ cardClick = (item) => {
       .then(res => res.text())
       .then(
         (result) => {
-          console.log(result)
           this.setState({
             extInfoLoaded: true, extinfo: result
           });
@@ -219,6 +239,24 @@ cardClick = (item) => {
 
           this.setState({
             extInfoLoaded: true,
+            error
+          });
+        }
+      )
+   fetch(basicURL+"marketapi/canremove/"+item.name)
+      .then(res => res.json())
+      .then(
+        (result) => {
+          console.log(result)
+          this.setState({
+            canRemove: result.result
+          });
+        },
+        (error) => {
+          console.log('fetch error')
+          console.log(error)
+
+          this.setState({
             error
           });
         }
@@ -241,7 +279,7 @@ return    <Box>{!(["audio","logging","proxy","file", "core", "http","m3u", "soft
                     width={90}
                     height={45}
                   />}
-                 {item.name == "core" && <Play color="blue" size="large" />}
+                 {item.name == "core" && <Play color="neutral-3" size="large" />}
                  {item.name == "logging" && <Console color="icon1" size="large" />}
                  {item.name == "audio" && <Volume color="orange" size="large" />}
                  {item.name == "proxy" && <Network color="icon1" size="large" />}
@@ -253,7 +291,7 @@ return    <Box>{!(["audio","logging","proxy","file", "core", "http","m3u", "soft
                  {item.name == "scrobbler" && <Lastfm color="red" size="large" />}
                  {item.name == "local" && <Local color="accent-2" size="large" />}
                  {item.name == "master" && <Server color="red" size="large" />}
-                 {item.name == "podcast" && <Rss color="blue" size="large" />}
+                 {item.name == "podcast" && <Rss color="neutral-3" size="large" />}
                  {item.name == "autoplay" && <Sync color="neutral-2" size="large" />}
                  {item.name == "headless" && <Technology color="icon1" size="large" />}
                  {item.name == "pidi" && <Device color="red" size="large" />}
@@ -262,6 +300,7 @@ return    <Box>{!(["audio","logging","proxy","file", "core", "http","m3u", "soft
 }
 
 renderInstalledGrid = () => {
+   console.log(this.state.uninstalled)
    return   <Grid
          gap="small"
          columns={{ count: 'fit', size: ['small'] }}
@@ -269,17 +308,20 @@ renderInstalledGrid = () => {
       >
 
     {this.state.installed.map((item, i) => {
+     if (this.state.uninstalled.includes(item.name)) {
+       return <Box></Box>
+     }
      return  <Card key={item.name} onClick={() => {this.cardClick(item)}} elevation="xxsmall" colors={{border:"#424242"}} border={true} background="#141414" ><Stack>
                  <CardBody height="small" width="small" justify="center" align="center" background="#121212" >
                     {this.renderImage(item)}
                 </CardBody>
                <CardHeader
                   pad={{ horizontal: 'small', vertical: 'xxsmall' }}
-                  background="brand"
+                  background={item.enabled && "brand" || "#424242"}
                   width="medium"
                   justify="start"
                 >
-                <Text size="small" color="#121212" >{item.name}</Text>
+                <Text size="medium" color="#000000" justify="center" >{item.name}</Text>
                 </CardHeader>
              </Stack>
 
@@ -305,11 +347,11 @@ renderAvailableGrid = () => {
                 </CardBody>
                <CardHeader
                   pad={{ horizontal: 'small', vertical: 'xxsmall' }}
-                  background="brand"
+                  background="dark-4"
                   width="medium"
                   justify="start"
                 >
-                <Text size="small" color="#121212" >{item.name}</Text>
+                <Text size="medium" color="#121212" >{item.name}</Text>
                 </CardHeader>
              </Stack>
 
@@ -379,6 +421,7 @@ renderControl = (item) => {
 
 renderExt = () => {
   const keys = Object.keys(this.state.configSchema);
+  console.log(this.state.canRemove)
   return  <Box><Button icon={<FormPrevious/>} label="Back" color="brand" onClick={this.tabSelected} width="100px" ></Button>
           <Box direction="row" pad="small" align="center" >{this.renderImage(this.state.currentExt)}
           <Text margin="large" justify="center" >{this.state.currentExt.name}</Text></Box>
@@ -386,9 +429,10 @@ renderExt = () => {
           {keys.map( (item, i) => { 
             return this.renderControl(item)
           })}</Form></Box>
-          <Box size="small" pad="medium"  >
+          <Box size="small" pad="medium" direction="row" justify="between" >
           {this.state.installed_list.includes(this.state.currentExt.name) && <Button icon={<Save/>} color="sdark" label="Save"  pad="medium" justify="center"  onClick={this.saveClick} width="small" ></Button>}
-          {(!this.state.installed_list.includes(this.state.currentExt.name)) && <Button icon={<Install/>} color="sdark" label="Install"  pad="medium" justify="center"  onClick={this.installClick} width="small" ></Button>}
+          {(!this.state.installed_list.includes(this.state.currentExt.name)) && <Button icon={<Install/>} color="sdark" label="Install"  pad="medium" justify="center"  onClick={this.installClick} width="medium" ></Button>}
+          {this.state.canRemove && <Button icon={<Trash/>} color="sdark" label="Uninstall" pad="medium"  onClick={this.showUninstallDialog} width="small" ></Button>}
           </Box>
           <Box> <div dangerouslySetInnerHTML={{ __html: this.state.extinfo }} /> </Box>
           </Box>
@@ -400,6 +444,14 @@ renderChanges = () => {
             return <Text className="changes" >- {item.name} ({item.changes})</Text>
           })}
      </Box>
+}
+
+showUninstallDialog = () => {
+  this.setState({uninstallDialog:true})
+}
+
+hideDialog = () => {
+  this.setState({uninstallDialog:false})
 }
 
 render = () => {
@@ -416,7 +468,13 @@ const customTheme = deepMerge(dark, {
       "slight": "#672731",
       "sec": "#98525a",
       "border": "#424242",
-      "icon1": "#646464"
+      "icon1": "#747474",
+      "dark-2": "#ff7043",
+      "dark-2": "#c63f17",
+      "dark-5": "#81c784",
+      "dark-4": "#519657",
+      "dark-2": "#ffb74d",
+      "dark-6": "#ffa726"
     },
     edgeSize: {
       small: '10px',
@@ -457,15 +515,16 @@ const customTheme = deepMerge(dark, {
   },
   tab: {
     active: {
-      background: 'bdark',
-      color: 'accent-1',
+      background: 'dark-2',
+      color: '#121212',
     },
-    background: 'dark-1',
+    background: 'brand',
     border: undefined,
-    color: 'white',
+    color: '#121212',
     hover: {
-      background: 'blight',
-      color: 'dark-1',
+      background: 'dark-6',
+      color: '#121212',
+      stroke: 'dark-1'
     },
     margin: undefined,
     pad: {
@@ -507,16 +566,29 @@ const customTheme = deepMerge(dark, {
   },
 });
 
+
 const RichTabTitle = ({ icon, label }) => (
-  <Box direction="row" align="center" gap="xsmall" margin="xsmall">
-    <Text size="small">
+  <Box direction="row" align="center" gap="xsmall" margin="xsmall" justify="center" >
+    {icon}
+    <Text color="#000000" >
       <strong>{label}</strong>
     </Text>
   </Box>
 );
 
+
   return (
     <Grommet full theme={customTheme}  >
+    {this.state.uninstallDialog && <Layer>
+    <Box pad="medium" direction="column" >
+       <Text pad="medium" className="dialogMessage" >Are you sure you want to uninstall {this.state.currentExt.name}?</Text>
+       <Box pad="medium" direction="row" justify="between" >
+       <Button label="Remove" icon={<Trash />} onClick={this.uninstallClick} color="sdark" />
+       <Button label="Cancel" onClick={this.hideDialog} color="brand" />
+       </Box>
+    </Box>
+    </Layer>}
+
     {(!(this.state.installedLoaded && this.state.availableLoaded && this.state.configLoaded && this.state.configSchemaLoaded && this.state.extInfoLoaded)) && <Layer>
     <Box pad="medium" direction="row" >
         <Spinner margin="small"
@@ -529,14 +601,14 @@ const RichTabTitle = ({ icon, label }) => (
        </Box>
     </Layer>}
     <Tabs>
-    <Tab title={<RichTabTitle label="Installed" />} onClick={this.tabSelected} >
+    <Tab title={<RichTabTitle label="Installed" icon={<Configure color="#121212" />} />} onClick={this.tabSelected} >
      <Box >
        {this.state.needRestart && this.renderChanges()}
        {(this.state.currentExt.name == '') && this.renderInstalledGrid()}
        {(this.state.currentExt.name != '') && this.renderExt()}
      </Box>
      </Tab>
-     <Tab title={<RichTabTitle label="Available" />} >
+     <Tab title={<RichTabTitle label="Available" icon={<Install color="#121212" />} />} >
        {this.state.needRestart && this.renderChanges()}
        {(this.state.currentExt.name == '') && this.renderAvailableGrid()}
        {(this.state.currentExt.name != '') && this.renderExt()}

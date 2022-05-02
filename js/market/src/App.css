@@ -138,3 +138,7 @@ div.changes {
 div[role="tabpanel"] {
   padding-top: 20px;
 }
+
+.dialogMessage {
+  margin-top: 24px;
+}

@@ -92,7 +92,7 @@ class MarketApiHandler(tornado.web.RequestHandler):
              'muse': 'icons/muse.jpg',
              'musicbox_webclient': 'icons/musicbox_webclient.jpg',
              'party': 'icons/party.jpg',
-             'mpris': 'icons/mpris.svg',
+             'mpris': 'icons/mpris.png',
              'alsamixer': 'icons/alsamixer.png',
              'nad': 'icons/nad.svg'
      }
@@ -104,6 +104,10 @@ class MarketApiHandler(tornado.web.RequestHandler):
      "audio": {'mixer': 'String', 'mixer_volume': 'Integer', 'output': 'String', 'buffer_time': 'Integer'},
      "proxy": {'scheme': 'String', 'hostname': 'String', 'port': 'String', 'username': 'String', 'password': 'Secret'}
     }
+
+    cannot_remove = [
+     "core","logging","audio","proxy","file","http","m3u","softwaremixer","stream","local"
+    ]
 
     available = [ "bandcamp", "beets", "dleyna", "funkwhale", "internetarchive", "jamendo", "jellyfin", "local","mixcloud","orfradio","pandora","podcast","podcast-itunes",
                   "radionet", "somafm", "soundcloud", "spotify", "stream", "subidy", "tunein", "youtube","ytmusic","iris","mobile","mopster","mowecl","muse","musicbox_webclient","musicbox_darkclient","party",
@@ -220,7 +224,13 @@ class MarketApiHandler(tornado.web.RequestHandler):
                icon = self.icons[module]
              else:
                icon = ""
-             modules.append({"name":module, "image": icon})
+             if 'enabled' in self.config[module]:
+               enabled = self.config[module]['enabled']
+             elif module in self.schemas:
+               enabled = True
+             else:
+               enabled = False
+             modules.append({"name":module, "image": icon, "enabled": enabled })
            self.write(json.dumps(modules))
         elif path == 'available':
            modules = []
@@ -252,8 +262,18 @@ class MarketApiHandler(tornado.web.RequestHandler):
             self.write(str(content))
           else:
             self.write("")
+        elif "canremove/" in path:
+          params = path.split('/')
+          module = params[1]
+          self.write(json.dumps({"result":(not (module in self.cannot_remove)) and (module in self.config)}))
         elif path == 'pending':
           self.write(json.dumps(self.changes))
+        elif 'uninstall/' in path:
+          params = path.split('/')
+          module = params[1]
+          subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", f"mopidy-{module}"])
+          self.changes.append({"name":module,"changes":"uninstalled"})
+          self.write(json.dumps({'name':module,'result':'uninstalled'}))
         elif 'install/' in path:
           params = path.split('/')
           module = params[1]
