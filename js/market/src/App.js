@@ -11,8 +11,8 @@ import { Console, Volume, Network, DocumentSound,
 import { deepMerge } from 'grommet/utils';
 import { css } from 'styled-components';
 
-//var basicURL = "http://homes.lan:6680/market/" //for testing
 var basicURL = "/market/"
+//var basicURL = "http://homes.lan:6680/market/" //for testing
 
 class App extends React.Component {
 

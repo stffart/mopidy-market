@@ -81,7 +81,7 @@ a {
 
 .column.is-4 {
 
-  float: right;
+  float: left;
   width: 40%;
   padding: 5px;
 }
@@ -90,7 +90,8 @@ a {
   float: left;
   width: 54%;
   padding: 10px;
-
+  margin-right:10px;
+  margin-bottom:10px;
 }
 
 .column pre {
@@ -141,4 +142,19 @@ div[role="tabpanel"] {
 
 .dialogMessage {
   margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+
+.column.is-4 {
+  float: left;
+  width: unset;
+  padding: 5px;
+}
+.column.is-8 {
+  float: left;
+  width: unset;
+  padding: 10px;
+}
+
 }
