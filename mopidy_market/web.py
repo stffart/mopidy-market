@@ -68,12 +68,12 @@ class MarketApiHandler(tornado.web.RequestHandler):
              'emby': 'icons/emby.ico',
              'bandcamp': 'icons/bandcamp.png',
              'beets': 'icons/beets.png',
-             'funkwhale': 'icons/funkwhale.svg',
+             'funkwhale': 'icons/funkwhale.png',
              'internetarchive': 'icons/internetarchive.png',
              'dleyna': 'icons/dleyna.png',
              'jellyfin': 'icons/jellyfin.svg',
              'mixcloud': 'icons/mixcloud.png',
-             'orfradio': 'icons/orfradio.svg',
+             'orfradio': 'icons/orfradio.png',
              'jamendo': 'icons/jamendo.svg',
              'pandora': 'icons/pandora.jpg',
              'podcast-itunes': 'icons/podcast-itunes.png',
@@ -94,7 +94,7 @@ class MarketApiHandler(tornado.web.RequestHandler):
              'party': 'icons/party.jpg',
              'mpris': 'icons/mpris.png',
              'alsamixer': 'icons/alsamixer.png',
-             'nad': 'icons/nad.svg'
+             'nad': 'icons/nad.png'
      }
 
 

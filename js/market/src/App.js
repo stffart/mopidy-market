@@ -301,7 +301,7 @@ return    <Box>{!(["audio","logging","proxy","file", "core", "http","m3u", "soft
 
 renderInstalledGrid = () => {
    console.log(this.state.uninstalled)
-   return   <Grid
+   return   <Grid className="moduleGrid"
          gap="small"
          columns={{ count: 'fit', size: ['small'] }}
          rows={{ count: 'fit', size: ['small'] }}
@@ -335,7 +335,7 @@ renderInstalledGrid = () => {
 
 
 renderAvailableGrid = () => {
-   return   <Grid
+   return   <Grid className="moduleGrid"
          gap="small"
          columns={{ count: 'fit', size: ['small'] }}
          rows={{ count: 'fit', size: ['small'] }}

@@ -24,6 +24,7 @@ Configuration
 =============
 
     [market]
+
     enabled = true
 
 Usage

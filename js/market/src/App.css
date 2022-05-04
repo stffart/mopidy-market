@@ -144,6 +144,12 @@ div[role="tabpanel"] {
   margin-top: 24px;
 }
 
+
+.moduleGrid {
+  grid-template-columns: repeat(auto-fit,minmax(200px,250px));
+}
+
+
 @media (max-width: 480px) {
 
 .column.is-4 {
@@ -158,3 +164,4 @@ div[role="tabpanel"] {
 }
 
 }
+
