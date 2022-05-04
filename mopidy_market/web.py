@@ -162,7 +162,10 @@ class MarketApiHandler(tornado.web.RequestHandler):
           module = params[1]
           config = ConfigUpdater()
           home = os.path.expanduser("~")
-          configfile = os.path.join(home,'.config/mopidy/mopidy.conf')
+          configdir = os.path.join(home,'.config')
+          if 'XDG_CONFIG_HOME' in os.environ:
+            configdir = os.environ['XDG_CONFIG_HOME']
+          configfile = os.path.join(configdir,'mopidy/mopidy.conf')
           config.read(configfile)
           if not module in config.sections():
             config.add_section(module)
@@ -174,11 +177,11 @@ class MarketApiHandler(tornado.web.RequestHandler):
             logger.error(c)
             if data[c] != "" and data[c] != None:
               if isinstance(data[c],list):
-                if ", ".join(data[c]) != config[module][c]:
+                if (not c in config[module]) or (", ".join(data[c]) != config[module][c]):
                    result = 'changed'
                 config[module][c] = ", ".join(data[c])
               else:
-                if str(data[c]) != config[module][c]:
+                if (not c in config[module]) or (str(data[c]) != config[module][c]):
                    result = 'changed'
                 config[module][c] = str(data[c])
           logger.error(config[module])
