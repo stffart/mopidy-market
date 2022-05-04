@@ -12,7 +12,7 @@ import { deepMerge } from 'grommet/utils';
 import { css } from 'styled-components';
 
 var basicURL = "/market/"
-//var basicURL = "http://homes.lan:6680/market/" //for testing
+var basicURL = "http://homes.lan:6680/market/" //for testing
 
 class App extends React.Component {
 
@@ -36,7 +36,8 @@ class App extends React.Component {
       currentExt: {"name":""},
       configSchema: {},
       config: {},
-      nconfig: {}
+      nconfig: {},
+      frontend: ""
     };
   }
 
@@ -99,6 +100,22 @@ class App extends React.Component {
           console.log(error)
           this.setState({
             availableLoaded: true,
+            error
+          });
+        }
+      )
+    fetch(basicURL+"marketapi/frontend")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            frontend: result.frontend,
+          });
+        },
+        (error) => {
+          console.log('fetch error')
+          console.log(error)
+          this.setState({
             error
           });
         }
@@ -267,6 +284,10 @@ cardClick = (item) => {
 
 tabSelected = () => {
   this.setState({currentExt:{"name":""}})
+}
+
+gotoPlayer = () => {
+  window.location.replace('/'+this.state.frontend)
 }
 
 renderImage = (item) => {
@@ -608,11 +629,13 @@ const RichTabTitle = ({ icon, label }) => (
        {(this.state.currentExt.name != '') && this.renderExt()}
      </Box>
      </Tab>
-     <Tab title={<RichTabTitle label="Available" icon={<Install color="#121212" />} />} >
+     <Tab title={<RichTabTitle label="Available" icon={<Install color="#121212" />} />} onClick={this.tabSelected} >
        {this.state.needRestart && this.renderChanges()}
        {(this.state.currentExt.name == '') && this.renderAvailableGrid()}
        {(this.state.currentExt.name != '') && this.renderExt()}
      </Tab>
+     {this.state.frontend.length != 0 && <Tab title={<RichTabTitle label="Player" icon={<Play color="#121212" />} />} onClick={this.gotoPlayer} >
+     </Tab>}
    </Tabs>
    </Grommet>
   );

@@ -218,6 +218,12 @@ class MarketApiHandler(tornado.web.RequestHandler):
             for c in schema:
               result[c] = schema[c].__class__.__name__
           self.write(json.dumps(result))
+        elif path == 'frontend':
+           frontend = self.config['market']['frontend']
+           if frontend == None:
+             frontend = ""
+           result = {'frontend':frontend}
+           self.write(json.dumps(result))
         elif path == 'installed':
            modules = []
            for module in self.config:
