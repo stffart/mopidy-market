@@ -12,7 +12,7 @@ import { deepMerge } from 'grommet/utils';
 import { css } from 'styled-components';
 
 var basicURL = "/market/"
-//var basicURL = "http://homes.lan:6680/market/" //for testing
+var basicURL = "http://192.168.2.237:6680/market/" //for testing
 
 class App extends React.Component {
 
@@ -152,7 +152,7 @@ uninstallClick = () => {
         (result) => {
           if (result.result == 'uninstalled') {
             this.setState({ pending: this.state.pending.concat({'name': result.name, 'changes':'uninstalled'}), 
-                      uninstalled: this.state.uninstalled.concat(result.name), needRestart: true
+                      uninstalled: this.state.uninstalled.concat(result.name), needRestart: true, uninstallDialog: false
             });
           }
         },
