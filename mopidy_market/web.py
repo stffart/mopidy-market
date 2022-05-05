@@ -95,7 +95,8 @@ class MarketApiHandler(tornado.web.RequestHandler):
              'mpris': 'icons/mpris.png',
              'alsamixer': 'icons/alsamixer.png',
              'nad': 'icons/nad.png',
-             'mopidy': 'icons/mopidy.png'
+             'mopidy': 'icons/mopidy.png',
+             'mopidy_mopidy': 'icons/mopidy.png'
      }
 
 
