@@ -94,7 +94,8 @@ class MarketApiHandler(tornado.web.RequestHandler):
              'party': 'icons/party.jpg',
              'mpris': 'icons/mpris.png',
              'alsamixer': 'icons/alsamixer.png',
-             'nad': 'icons/nad.png'
+             'nad': 'icons/nad.png',
+             'mopidy': 'icons/mopidy.png'
      }
 
 
@@ -109,7 +110,7 @@ class MarketApiHandler(tornado.web.RequestHandler):
      "core","logging","audio","proxy","file","http","m3u","softwaremixer","stream","local"
     ]
 
-    available = [ "bandcamp", "beets", "dleyna", "funkwhale", "internetarchive", "jamendo", "jellyfin", "local","mixcloud","orfradio","pandora","podcast","podcast-itunes",
+    available = [ "bandcamp", "beets", "dleyna", "funkwhale", "internetarchive", "jamendo", "jellyfin", "local","mixcloud","master","mopidy","orfradio","pandora","podcast","podcast-itunes",
                   "radionet", "somafm", "soundcloud", "spotify", "stream", "subidy", "tunein", "youtube","ytmusic","iris","mobile","mopster","mowecl","muse","musicbox_webclient","musicbox_darkclient","party",
                   "autoplay", "headless", "mpd", "mpris", "pidi", "raspberry-gpio", "scrobbler", "alsamixer", "nad", "softwaremixer" ]
 
