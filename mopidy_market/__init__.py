@@ -26,6 +26,7 @@ class Extension(ext.Extension):
 
     def get_config_schema(self):
         schema = super().get_config_schema()
+        schema["frontend"] = config.String(optional=True)
         return schema
 
     def setup(self, registry):

@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 import requests
 from configupdater import ConfigUpdater
 import os
-
+import pip
 
 class StaticHandler(tornado.web.StaticFileHandler):
     def get(self, path, *args, **kwargs):
@@ -94,7 +94,9 @@ class MarketApiHandler(tornado.web.RequestHandler):
              'party': 'icons/party.jpg',
              'mpris': 'icons/mpris.png',
              'alsamixer': 'icons/alsamixer.png',
-             'nad': 'icons/nad.png'
+             'nad': 'icons/nad.png',
+             'mopidy': 'icons/mopidy.png',
+             'mopidy_mopidy': 'icons/mopidy.png'
      }
 
 
@@ -109,8 +111,8 @@ class MarketApiHandler(tornado.web.RequestHandler):
      "core","logging","audio","proxy","file","http","m3u","softwaremixer","stream","local"
     ]
 
-    available = [ "bandcamp", "beets", "dleyna", "funkwhale", "internetarchive", "jamendo", "jellyfin", "local","mixcloud","orfradio","pandora","podcast","podcast-itunes",
-                  "radionet", "somafm", "soundcloud", "spotify", "stream", "subidy", "tunein", "youtube","ytmusic","iris","mobile","mopster","mowecl","muse","musicbox_webclient","musicbox_darkclient","party",
+    available = [ "bandcamp", "beets", "dleyna", "funkwhale", "internetarchive", "jamendo", "jellyfin", "local","mixcloud","master","mopidy","orfradio","pandora","podcast","podcast-itunes",
+                  "radionet", "somafm", "soundcloud", "spotify", "stream", "subidy", "tunein", "yamusic", "youtube","ytmusic","iris","mobile","mopster","mowecl","muse","musicbox_webclient","musicbox_darkclient","party",
                   "autoplay", "headless", "mpd", "mpris", "pidi", "raspberry-gpio", "scrobbler", "alsamixer", "nad", "softwaremixer" ]
 
     def initialize(self, config, core, path, extensions, changes):
@@ -218,6 +220,12 @@ class MarketApiHandler(tornado.web.RequestHandler):
             for c in schema:
               result[c] = schema[c].__class__.__name__
           self.write(json.dumps(result))
+        elif path == 'frontend':
+           frontend = self.config['market']['frontend']
+           if frontend == None:
+             frontend = ""
+           result = {'frontend':frontend}
+           self.write(json.dumps(result))
         elif path == 'installed':
            modules = []
            for module in self.config:
@@ -274,13 +282,13 @@ class MarketApiHandler(tornado.web.RequestHandler):
         elif 'uninstall/' in path:
           params = path.split('/')
           module = params[1]
-          subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", f"mopidy-{module}"])
+          pip.main(['uninstall',"-y",f"mopidy-{module}"])
           self.changes.append({"name":module,"changes":"uninstalled"})
           self.write(json.dumps({'name':module,'result':'uninstalled'}))
         elif 'install/' in path:
           params = path.split('/')
           module = params[1]
-          subprocess.check_call([sys.executable, "-m", "pip", "install", f"mopidy-{module}"])
+          pip.main(['install',f"mopidy-{module}"])
           self.changes.append({"name":module,"changes":"installed"})
           self.write(json.dumps({'name':module,'result':'installed'}))
         else:
